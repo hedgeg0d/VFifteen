@@ -19,6 +19,6 @@ $ v run .
  - [x] Android build
  - [x] Move animation
  - [x] Theme switching
+ - [x] Different field sizes
  - [ ] Stats saves
  - [ ] Settings
- - [ ] Different field sizes

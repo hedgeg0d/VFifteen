@@ -179,8 +179,8 @@ fn (mut app App) draw() {
 		u16(f32(app.ui.label_font_size) * 1.5), u16(f32(app.ui.label_font_size) * 1.5),
 		3)
 
-	app.draw_button(2, 30, app.ui.theme.tile_correct)
-	app.draw_button(3, 30, app.ui.theme.tile)
+	app.draw_button(2, 30 * 4 / app.field_size, app.ui.theme.tile_correct)
+	app.draw_button(3, 30 * 4 / app.field_size, app.ui.theme.tile)
 
 	app.gg.draw_text(app.ui.f_x + tw / 2, app.ui.label_font_size, 'Moves: ${app.moves}',
 		gx.TextCfg{
@@ -204,22 +204,32 @@ fn (mut app App) draw() {
 			align:          .center
 		})
 	}
-
-	app.gg.draw_text(app.ui.f_x + tw + int(f32(app.ui.tile_size) * 1.6), app.ui.f_y / $if android {
+	
+	mut title_parts := [2]string{}
+	title_font_size := int(f32(app.ui.label_font_size) * 1.2)
+	match app.field_size {
+	  3 {title_parts = ['Small ', '3x3']!}
+		4 {title_parts = ['Classic ', '4x4']!}
+		5 {title_parts = ['Big ', '5x5']!}
+		else {title_parts = ['Large ', '6x6']!}
+	}
+	app.gg.draw_text(app.ui.window_width / 4 * 3, app.ui.f_y / $if android {
 		4
 	} $else {
 		2
-	}, 'Classic ', gx.TextCfg{
+	}, title_parts[0], gx.TextCfg{
 		...app.txtcfg
 		color: app.ui.theme.font
-		size:  app.txtcfg.size - app.txtcfg.size / 2
+		size: title_font_size
 	})
-	tx := app.ui.f_x + tw + int(f32(app.ui.tile_size) * 1.6) + app.gg.text_width('Classic')
-	app.gg.draw_text(tx, app.ui.f_y / $if android { 4 } $else { 2 }, '4x4', gx.TextCfg{
+	tx := app.ui.window_width / 4 * 3 + app.gg.text_width(title_parts[0])
+	app.gg.draw_text(tx, app.ui.f_y / $if android { 4 } $else { 2 }, title_parts[1], gx.TextCfg{
 		...app.txtcfg
 		color: app.ui.theme.font_accent
-		size:  app.txtcfg.size - app.txtcfg.size / 2
+		size: title_font_size
 	})
+	
+	app.add_button(u16(app.ui.window_width / 3 * 2), 0, u16(app.gg.text_width('${title_parts[0]}${title_parts[0]}')), app.ui.f_y, 4)
 
 	// spawn animation
 	tsize := app.ui.tile_size
@@ -229,8 +239,8 @@ fn (mut app App) draw() {
 		asize := u16(tsize / diff)
 		padding := u16(app.ui.tile_padding + (tsize - asize))
 		xc, yc = app.ui.f_x + padding / 2, app.ui.f_y + padding / 2
-		for i in 0 .. 4 {
-			for j in 0 .. 4 {
+		for i in 0 .. app.field_size {
+			for j in 0 .. app.field_size {
 				if app.field[i][j] == 0 {
 					xc += asize + padding
 					continue
@@ -240,7 +250,7 @@ fn (mut app App) draw() {
 				} else {
 					app.ui.theme.tile
 				}
-				app.gg.draw_rounded_rect_filled(xc, yc, asize, asize, 30, c)
+				app.gg.draw_rounded_rect_filled(xc, yc, asize, asize, 30 * 4 / app.field_size, c)
 				xc += asize + padding
 			}
 			xc = app.ui.f_x + padding / 2
@@ -251,13 +261,13 @@ fn (mut app App) draw() {
 
 	app.draw_animated_tiles()
 	xc, yc = app.ui.f_x + app.ui.tile_padding / 2, app.ui.f_y + app.ui.tile_padding / 2
-	for i in 0 .. 4 {
-		for j in 0 .. 4 {
+	for i in 0 .. app.field_size {
+		for j in 0 .. app.field_size {
 			if app.field[i][j] == 0 || app.is_animated(j, i) {
 				xc += tsize + app.ui.tile_padding
 				continue
 			}
-			mut c := if i * 4 + j == app.field[i][j] - 1 {
+			mut c := if i * app.field_size + j == app.field[i][j] - 1 {
 				app.ui.theme.tile_correct
 			} else {
 				app.ui.theme.tile
@@ -276,13 +286,15 @@ fn (mut app App) draw() {
 				}
 			}
 
-			app.gg.draw_rounded_rect_filled(xc, yc, tsize, tsize, 30, c)
-			app.gg.draw_text((xc + tsize / 2) + 2, (yc + tsize / 2) + 2, '${app.field[i][j]}',
-				gx.TextCfg{
-				...app.txtcfg
-				color: gx.rgba(10, 23, 16, 100)
-			})
-			app.gg.draw_text(xc + tsize / 2, yc + tsize / 2, '${app.field[i][j]}', app.txtcfg)
+			app.gg.draw_rounded_rect_filled(xc, yc, tsize, tsize, 30 * 4 / app.field_size, c)
+			if app.state == .play {
+  			app.gg.draw_text((xc + tsize / 2) + 2, (yc + tsize / 2) + 2, '${app.field[i][j]}',
+  				gx.TextCfg{
+  				...app.txtcfg
+  				color: gx.rgba(10, 23, 16, 100)
+  			})
+  			app.gg.draw_text(xc + tsize / 2, yc + tsize / 2, '${app.field[i][j]}', app.txtcfg)
+			}
 			xc += tsize + app.ui.tile_padding
 		}
 		xc = app.ui.f_x + app.ui.tile_padding / 2
@@ -358,7 +370,6 @@ fn (mut app App) draw_win_screen() {
 			align:          .center
 			vertical_align: .middle
 			color:          app.ui.theme.font_accent
-			// size: app.ui.label_font_size
 			size: 69 / app.win_animation
 		})
 		app.gg.draw_text(app.ui.window_width / 2, app.ui.window_height / 3 +
@@ -367,7 +378,6 @@ fn (mut app App) draw_win_screen() {
 			...app.txtcfg
 			align:          .center
 			vertical_align: .middle
-			// color: app.ui.theme.font_accent,
 			size: app.ui.label_font_size / app.win_animation
 		})
 		app.win_animation--
@@ -380,14 +390,12 @@ fn (mut app App) draw_win_screen() {
 		align:          .center
 		vertical_align: .middle
 		color:          app.ui.theme.font_accent
-		// size: app.ui.label_font_size
 	})
 	app.gg.draw_text(app.ui.window_width / 2, app.ui.window_height / 3 + app.ui.label_font_size +
 		app.ui.tile_padding * 2, 'Press N to start new game', gx.TextCfg{
 		...app.txtcfg
 		align:          .center
 		vertical_align: .middle
-		// color: app.ui.theme.font_accent,
 		size: app.ui.label_font_size
 	})
 	if app.moves == 0 {
@@ -399,7 +407,6 @@ fn (mut app App) draw_win_screen() {
 		...app.txtcfg
 		align:          .center
 		vertical_align: .middle
-		// color: app.ui.theme.font_accent,
 		size: app.ui.label_font_size
 	})
 }
@@ -425,6 +432,7 @@ fn (mut app App) dbg_buttons() {
 const frame_time = (1000 / 65) * 1000000
 
 fn frame(mut app App) {
+	// attempt to make fps lock. makes animations not smooth now
 	// current_time := time.now().unix_nano()
 	// if current_time - app.frame_start < frame_time {return}
 	app.gg.begin()
@@ -450,8 +458,8 @@ fn frame(mut app App) {
 }
 
 fn (app &App) print_field() {
-	for i in 0 .. 4 {
-		for j in 0 .. 4 {
+  for i in 0 .. app.field_size {
+    for j in 0 .. app.field_size {
 			print('${utils.pad(app.field[i][j], 2)} ')
 		}
 		println('')
@@ -460,20 +468,21 @@ fn (app &App) print_field() {
 }
 
 fn (mut app App) scramble() {
-	mut unused := []u8{len: 16}
-	for i in 0 .. 16 {
+  mut unused := []u8{len: int(app.field_size * app.field_size), cap: int(app.field_size * app.field_size)}
+	for i in 0 .. app.field_size * app.field_size {
 		unused[i] = u8(i)
 	}
-	for i in 0 .. 4 {
-		for j in 0 .. 4 {
-			mut idx := rand.u32_in_range(0, u32(unused.len)) or { panic('Error: 1') }
+	for i in 0 .. app.field_size {
+		for j in 0 .. app.field_size {
+			mut idx := rand.int_in_range(0, unused.len) or { panic('Error: 1') }
 			app.field[i][j] = unused[idx]
-			unused = utils.delete(unused, idx)
+			unused = utils.delete(unused, int(idx))
 		}
 	}
 }
 
 fn (mut app App) new_game() {
+  app.field = [][]u8{len: int(app.field_size), cap: int(app.field_size), init: []u8{len: int(app.field_size), cap: int(app.field_size)}}
 	app.scramble()
 	for !utils.is_solvable(app.field, app.field_size) || app.is_solved() {
 		app.scramble()
@@ -488,8 +497,8 @@ fn (mut app App) new_game() {
 
 fn (app &App) is_solved() bool {
 	mut expected := u8(1)
-	for i in 0 .. 15 {
-		if app.field[i / 4][i % 4] != expected {
+	for i in 0 .. app.field_size * app.field_size - 1 {
+		if app.field[i / app.field_size][i % app.field_size] != expected {
 			return false
 		}
 		expected++
@@ -522,8 +531,8 @@ fn (mut app App) handle_tap(x i32, y i32) {
 	if y < app.ui.f_y || y > app.ui.f_y + app.ui.field_size {
 		return
 	}
-	ny, nx := u8((x - app.ui.f_x) / (app.ui.field_size / 4)), u8((y - app.ui.f_y) / (app.ui.field_size / 4))
-	if nx < 0 || nx > 3 || ny < 0 || ny > 3 {
+	ny, nx := u8((x - app.ui.f_x) / (app.ui.field_size / app.field_size)), u8((y - app.ui.f_y) / (app.ui.field_size / app.field_size))
+	if nx < 0 || nx > app.field_size - 1 || ny < 0 || ny > app.field_size - 1 {
 		return
 	}
 	app.process_move(nx, ny)
@@ -556,7 +565,7 @@ fn (mut app App) process_move(x u8, y u8) {
 			for i := idx - 1; i >= nx; i-- {
 				line[i + 1] = line[i]
 				app.animated_tiles << [u8(i + 1), u8(ny), 1, 15]
-				if i + 1 + ny * 4 == line[i + 1] - 1 {
+				if i + 1 + ny * app.field_size == line[i + 1] - 1 {
 					app.ui.fade << [line[i + 1], 15]
 				}
 			}
@@ -564,7 +573,7 @@ fn (mut app App) process_move(x u8, y u8) {
 			for i in idx + 1 .. nx + 1 {
 				line[i - 1] = line[i]
 				app.animated_tiles << [u8(i - 1), u8(ny), 2, 15]
-				if i - 1 + ny * 4 == line[i - 1] - 1 {
+				if i - 1 + ny * app.field_size == line[i - 1] - 1 {
 					app.ui.fade << [line[i - 1], 15]
 				}
 			}
@@ -587,7 +596,7 @@ fn (mut app App) process_move(x u8, y u8) {
 			for i := idx - 1; i >= x; i-- {
 				line[i + 1] = line[i]
 				app.animated_tiles << [u8(nx), u8(i + 1), 3, 15]
-				if (i + 1) * 4 + nx == line[i + 1] - 1 {
+				if (i + 1) * app.field_size + nx == line[i + 1] - 1 {
 					app.ui.fade << [line[i + 1], 15]
 				}
 			}
@@ -595,7 +604,7 @@ fn (mut app App) process_move(x u8, y u8) {
 			for i in idx + 1 .. x + 1 {
 				line[i - 1] = line[i]
 				app.animated_tiles << [u8(nx), u8(i - 1), 4, 15]
-				if (i - 1) * 4 + nx == line[i - 1] - 1 {
+				if (i - 1) * app.field_size + nx == line[i - 1] - 1 {
 					app.ui.fade << [line[i - 1], 15]
 				}
 			}
@@ -667,6 +676,13 @@ fn (mut app App) process_button(n u16) {
 		3 {
 			app.next_theme()
 		}
+		4 {
+		  app.field_size++
+			if app.field_size > 6 {app.field_size = 3}
+			app.resize()
+			app.new_game()
+	    eprintln('${app.field_size}')
+		}
 		else {}
 	}
 }
@@ -686,9 +702,9 @@ fn (mut app App) resize() {
 	app.ui.field_size = u16(m - f32(m) * 1 / 9)
 	app.ui.f_x = (w - app.ui.field_size) / 2
 	app.ui.tile_padding = app.ui.field_size / 80
-	app.ui.tile_size = app.ui.field_size / 4 - app.ui.tile_padding
-	app.ui.font_size = u16(m * 13 / 100)
-	app.ui.label_font_size = app.ui.font_size / 2
+	app.ui.tile_size = app.ui.field_size / app.field_size - app.ui.tile_padding
+	app.ui.font_size = u16(m * 13 / 100) * 4 / app.field_size
+	app.ui.label_font_size = u16(m * 13 / 200)
 	app.txtcfg = gx.TextCfg{
 		...app.txtcfg
 		size: app.ui.font_size

@@ -12,42 +12,46 @@ pub fn delete[T](arr []T, index int) []T {
 	return new_arr
 }
 
-pub fn count_inversions(puzzle [][]u8, size u8) int {
-	mut inversions := 0
-	mut flat_puzzle := []int{}
+pub fn is_solvable(puzzle [][]u8, size u8) bool {
+    inversions := count_inversions(puzzle, size)
+    mut empty_tile_row := -1
+    for i := 0; i < size; i++ {
+        for j := 0; j < size; j++ {
+            if puzzle[i][j] == 0 {
+                empty_tile_row = i + 1
+                break
+            }
+        }
+        if empty_tile_row != -1 {
+          break
+        }
+    }
 
-	for i in 0 .. size {
-		for j in 0 .. size {
-			if puzzle[i][j] != 0 {
-				flat_puzzle << puzzle[i][j]
-			}
-		}
-	}
-	for i in 0 .. flat_puzzle.len {
-		for j in i + 1 .. flat_puzzle.len {
-			if flat_puzzle[i] > flat_puzzle[j] {
-				inversions++
-			}
-		}
-	}
-	return inversions
+    if size % 2 == 0 {
+        return (inversions % 2 == 0) == (empty_tile_row % 2 == 0)
+    } else {
+        return inversions % 2 == 0 
+    }
 }
 
-pub fn is_solvable(puzzle [][]u8, size u8) bool {
-	inversions := count_inversions(puzzle, size)
-	mut empty_tile_row := 0
-	for i in 0 .. size {
-		for j in 0 .. size {
-			if puzzle[i][j] == 0 {
-				empty_tile_row = i + 1
-			}
-		}
-	}
-	if (inversions % 2 == 0 && empty_tile_row % 2 == 0)
-		|| (inversions % 2 != 0 && empty_tile_row % 2 != 0) {
-		return true
-	}
-	return false
+fn count_inversions(puzzle [][]u8, size u8) int {
+    mut inversions := 0
+    mut arr := []u8{}
+    for i := 0; i < size; i++ {
+        for j := 0; j < size; j++ {
+            if puzzle[i][j] != 0 {
+                arr << puzzle[i][j]
+            }
+        }
+    }
+    for i := 0; i < arr.len; i++ {
+        for j := i + 1; j < arr.len; j++ {
+            if arr[i] > arr[j] {
+                inversions++
+            }
+        }
+    }
+    return inversions
 }
 
 pub fn pad(n u64, len u8) string {
