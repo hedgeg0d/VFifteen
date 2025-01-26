@@ -209,7 +209,7 @@ fn (mut app App) draw() {
 	title_font_size := int(f32(app.ui.label_font_size) * 1.2)
 	match app.field_size {
 	  3 {title_parts = ['Small ', '3x3']!}
-		4 {title_parts = ['Classic ', '4x4']!}
+		4 {title_parts = ['Classic', '4x4']!}
 		5 {title_parts = ['Big ', '5x5']!}
 		else {title_parts = ['Large ', '6x6']!}
 	}
@@ -324,7 +324,7 @@ fn (mut app App) draw_animated_tiles() {
 					app.ui.tile_padding) * (i[0] - 1)
 				rx := cx + (tsize / 15) * (15 - i[3])
 				yc := app.ui.f_y + app.ui.tile_padding / 2 + (tsize + app.ui.tile_padding) * i[1]
-				app.gg.draw_rounded_rect_filled(rx, yc, tsize, tsize, 30, c)
+				app.gg.draw_rounded_rect_filled(rx, yc, tsize, tsize, 30 * 4 / app.field_size, c)
 				app.gg.draw_text(rx + tsize / 2, yc + tsize / 2, '${app.field[i[1]][i[0]]}',
 					app.txtcfg)
 			}
@@ -333,7 +333,7 @@ fn (mut app App) draw_animated_tiles() {
 					1)
 				rx := cx - (tsize / 15) * (15 - i[3])
 				yc := app.ui.f_y + app.ui.tile_padding / 2 + (tsize + app.ui.tile_padding) * i[1]
-				app.gg.draw_rounded_rect_filled(rx, yc, tsize, tsize, 30, c)
+				app.gg.draw_rounded_rect_filled(rx, yc, tsize, tsize, 30 * 4 / app.field_size, c)
 				app.gg.draw_text(rx + tsize / 2, yc + tsize / 2, '${app.field[i[1]][i[0]]}',
 					app.txtcfg)
 			}
@@ -342,7 +342,7 @@ fn (mut app App) draw_animated_tiles() {
 					app.ui.tile_padding) * (i[1] - 1)
 				ry := cy + (tsize / 15) * (15 - i[3])
 				xc := app.ui.f_x + app.ui.tile_padding / 2 + (tsize + app.ui.tile_padding) * i[0]
-				app.gg.draw_rounded_rect_filled(xc, ry, tsize, tsize, 30, c)
+				app.gg.draw_rounded_rect_filled(xc, ry, tsize, tsize, 30 * 4 / app.field_size, c)
 				app.gg.draw_text(xc + tsize / 2, ry + tsize / 2, '${app.field[i[1]][i[0]]}',
 					app.txtcfg)
 			}
@@ -351,7 +351,7 @@ fn (mut app App) draw_animated_tiles() {
 					1)
 				ry := cy - (tsize / 15) * (15 - i[3])
 				xc := app.ui.f_x + app.ui.tile_padding / 2 + (tsize + app.ui.tile_padding) * i[0]
-				app.gg.draw_rounded_rect_filled(xc, ry, tsize, tsize, 30, c)
+				app.gg.draw_rounded_rect_filled(xc, ry, tsize, tsize, 30 * 4 / app.field_size, c)
 				app.gg.draw_text(xc + tsize / 2, ry + tsize / 2, '${app.field[i[1]][i[0]]}',
 					app.txtcfg)
 			}
