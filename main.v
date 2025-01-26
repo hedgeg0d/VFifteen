@@ -681,7 +681,6 @@ fn (mut app App) process_button(n u16) {
 			if app.field_size > 6 {app.field_size = 3}
 			app.resize()
 			app.new_game()
-	    eprintln('${app.field_size}')
 		}
 		else {}
 	}
